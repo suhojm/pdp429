@@ -1,0 +1,39 @@
+                  1:         ORIG 0x40
+  0x0040: 0x0000    2: ZERO:	0
+  0x0041: 0x0040    3: TOZERO:	ZERO
+  0x0042: 0x0000    4: TMP:	0
+                  5: 		
+                  6:         ORIG 0x1000
+  0x1000: 0xFFFF    7: MSP:	0xFFFF
+  0x1001: 0xFFFC    8: MSPL:	0XFFFC
+                  9:         
+  0x1002: 0x0000   10: begin:  NOP
+                 11: 		// set up stack pointer and stack limit
+  0x1003: 0x8100   12: 		LDA   MSP    
+  0x1004: 0xEB80   13: 		AND   SP,A,A
+  0x1005: 0x8D01   14: 		LDD   MSPL
+  0x1006: 0xEDDB   15: 		OR    SPL,D,D
+                 16: 
+  0x1007: 0xC041   17: 		PUSH TOZERO
+  0x1008: 0xC041   18: 		PUSH TOZERO
+  0x1009: 0xC041   19: 		PUSH TOZERO
+  0x100A: 0xC041   20: 		PUSH TOZERO
+  0x100B: 0xC041   21: 		PUSH TOZERO
+  0x100C: 0xC041   22: 		PUSH TOZERO
+  0x100D: 0xC041   23: 		PUSH TOZERO
+  0x100E: 0xC041   24: 		PUSH TOZERO
+                 25: 
+  0x100F: 0xC442   26: 		POP TMP
+  0x1010: 0xC442   27: 		POP TMP
+  0x1011: 0xC442   28: 		POP TMP
+  0x1012: 0xC442   29: 		POP TMP
+  0x1013: 0xC442   30: 		POP TMP
+  0x1014: 0xC442   31: 		POP TMP
+  0x1015: 0xC442   32: 		POP TMP
+  0x1016: 0xC442   33: 		POP TMP
+  0x1017: 0xC442   34: 		POP TMP
+  0x1018: 0xC442   35: 		POP TMP
+  0x1019: 0xC442   36: 		POP TMP
+                 37: 
+                 38: 		END  begin
+                 39: 		

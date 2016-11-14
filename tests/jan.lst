@@ -1,0 +1,246 @@
+                  1: 		orig 0x100
+                  2: 
+                  3: //
+                  4: // A program to add some numbers
+                  5: //
+                  6: 
+                  7: //
+                  8: // print a string.  Address of string is in A register
+                  9: //
+  0x0100: 0x0000   10: ps0:      0
+  0x0101: 0x9100   11: prints:   sta  ps0		// store pointer, for indirect addressing
+  0x0102: 0x8300   12: ps1:	  lda  i ps0
+  0x0103: 0xF140   13: 		  sza rss
+  0x0104: 0x0002   14: 		  ret           // return on zero (end of string)
+  0x0105: 0xA020   15: 		  iota 4,0      // print character
+  0x0106: 0xB100   16: 		  isz  ps0
+  0x0107: 0xB502   17: 		  jmp ps1
+                 18: 		      
+                 19: 
+                 20: // print contents of A as a decimal number
+                 21: // uses a (input), b (10), c (digit)
+  0x0108: 0x0000   22: parray:	0
+  0x0109: 0x0000   23: 		0
+  0x010A: 0x0000   24: 		0
+  0x010B: 0x0000   25: 		0
+  0x010C: 0x0000   26: 		0
+  0x010D: 0x0000   27: 		0
+  0x010E: 0x0108   28: pradd:	parray
+  0x010F: 0x0108   29: prptr:	parray
+  0x0110: 0x000A   30: m10:	10
+  0x0111: 0x0030   31: czero:	'0'
+                 32: 		
+  0x0112: 0x850E   33: printn:	ldb  pradd
+  0x0113: 0x950F   34: 		stb  prptr    // set up pointer
+  0x0114: 0x8510   35: 		ldb  m10      // base 10 printing
+  0x0115: 0xE081   36: pr2:	mod  c,a,b    // get low-order digit (c = a mod 10)
+  0x0116: 0x1911   37: 		addc czero    // convert to character code
+  0x0117: 0x9B0F   38: 		stc  i prptr  // save digit
+  0x0118: 0xB10F   39: 		isz  prptr    // increment pointer
+  0x0119: 0xE801   40: 		div  a,a,b    // divide a/10 -> a
+  0x011A: 0xF100   41: 		sza 
+  0x011B: 0xB515   42: 		jmp pr2       // non-zero means print char array
+                 43: 
+  0x011C: 0x810F   44: pr3:	lda prptr
+  0x011D: 0xF002   45: 		dca            // --prptr;
+  0x011E: 0x910F   46: 		sta prptr
+  0x011F: 0x8B0F   47: 		ldc i prptr    // load the digit
+  0x0120: 0xA820   48: 		iotc 4,0       // print the digit
+  0x0121: 0x210E   49: 		suba pradd
+  0x0122: 0xF300   50: 		sma sza
+  0x0123: 0xB51C   51: 		jmp pr3
+  0x0124: 0x0002   52: 		ret
+                 53: 
+                 54: 
+                 55: //
+                 56: //   read a decimal number from input and return the value
+                 57: //   if there is a number, skip; if EOF, do not skip
+                 58: //   uses a (running total), b (10), c (input char), d (comparison)
+                 59: //
+  0x0125: 0x0000   60: rra:   0
+  0x0126: 0xC525   61: readn: pop   rra      // get return address
+                 62: 
+  0x0127: 0xF020   63: 	   cla            // a holds running sum
+  0x0128: 0x8510   64: 	   ldb m10        // b holds 10
+                 65: 
+  0x0129: 0xA818   66: rn1:   iotc   3,0     // read character
+  0x012A: 0xFA40   67: 	   smc rss
+  0x012B: 0xB725   68: 	   jmp i rra      // EOF causes exit with A=0
+                 69: 
+  0x012C: 0x2911   70: 	   subc czero     // c - '0'
+  0x012D: 0xFA40   71: 	   smc rss
+  0x012E: 0xB529   72: 	   jmp rn1        // bad input, skip and keep reading
+  0x012F: 0xE4D1   73: 	   sub d,c,b      // (c - '0') < 10?
+  0x0130: 0xFE00   74: 	   smd
+  0x0131: 0xB529   75: 	   jmp rn1        // still bad input,
+                 76: 
+                 77: //  we have skipped all the non-digit input before the number
+                 78: //  start reading the number
+  0x0132: 0xF020   79: 	   cla 
+  0x0133: 0xE601   80: rn2:   mul a,a,b      // a = a*10
+  0x0134: 0xE202   81: 	   add a,a,c      // a = a*10 + c - '0'
+  0x0135: 0xA818   82: 	   iotc   3,0     // read character
+  0x0136: 0x2911   83: 	   subc   czero   // c - '0'
+  0x0137: 0xFA40   84: 	   smc rss
+  0x0138: 0xB400   85: 	   jmp rn3        // bad input, done with number
+  0x0139: 0xE4D1   86: 	   sub d,c,b      // (c - '0') < 10?
+  0x013A: 0xFE40   87: 	   smd rss
+  0x013B: 0xB533   88: 	   jmp rn2        // loop back for another character
+                 89: 
+  0x013C: 0xB125   90: rn3:   isz rra
+  0x013D: 0xB725   91: 	   jmp i rra
+                 92: 
+                 93: 
+                 94: 
+                 95: 
+                 96: ///////////////////////////////////		
+                 97: //   Main program.
+                 98: //
+                 99: //   1. write a prompt.
+                100: //   2. read numbers until EOF (0xFFFF)
+                101: //   3. add all numbers together
+                102: //   4. print numbers and sum
+                103: //
+                104: 
+  0x013E: 0x0028  105: stsize:	  40
+  0x013F: 0x0000  106: sum:    0
+  0x0140: 0x0000  107: loopctr: 0
+  0x0141: 0x0000  108: ninputs: 0
+  0x0142: 0x0000  109: nptr:    0
+  0x0143: 0x0000  110: naddr:  addr_of_numbers
+                111: 
+  0x0144: 0xF022  112: main:   cla    	dca     // a = 0xFFFF
+  0x0145: 0xEB80  113: 		and 	sp,a,a  // move a to sp
+  0x0146: 0x213E  114: 		suba 	stsize
+  0x0147: 0xEBC0  115: 		and 	spl,a,a // move a minus stack size to spl
+                116: 		
+  0x0148: 0x8000  117: 		lda     prompt
+  0x0149: 0xB901  118: 		call 	prints             // print the prompt
+                119: 		
+  0x014A: 0xF020  120: 		cla                        // set up count and array for numbers
+  0x014B: 0x9141  121: 		sta		ninputs
+  0x014C: 0x8143  122: 		lda		naddr
+  0x014D: 0x9142  123: 		sta     nptr
+  0x014E: 0xB926  124: iloop:	call	readn              // read a number
+  0x014F: 0xB400  125: 		jmp		endinput           // if EOF
+  0x0150: 0x9342  126: 		sta I	nptr               // save the number
+  0x0151: 0xB142  127: 		isz		nptr
+  0x0152: 0xB141  128: 		isz		ninputs            // increase count of numbers
+  0x0153: 0xB54E  129: 		jmp		iloop
+                130: 
+                131: // EOF on input, now add numbers
+                132: endinput: 
+  0x0154: 0x8141  133: 	    lda		ninputs
+  0x0155: 0xF009  134: 		cma ina
+  0x0156: 0x9140  135: 		sta		loopctr            // define -n as loop count
+                136: 
+  0x0157: 0x8143  137: 		lda 	naddr
+  0x0158: 0x9142  138: 		sta		nptr               // rest pointer to numbers
+  0x0159: 0xFC30  139: 		cld cll                    // d holds running sum   
+  0x015A: 0x8342  140: oloop:	lda I   nptr               // print number
+  0x015B: 0xB912  141: 		call	    printn
+                142: 
+  0x015C: 0x8342  143: 		lda I   nptr               // add number
+  0x015D: 0xE2D8  144: 		add     d,d,a
+  0x015E: 0xFEC0  145: 		smd snl rss				// check for overflow
+  0x015F: 0xB400  146: 		jmp     overflow
+                147: 
+  0x0160: 0xB142  148: 		isz     nptr
+  0x0161: 0xB140  149: 		isz		loopctr
+  0x0162: 0xB400  150: 		jmp     oloop1
+  0x0163: 0xB400  151: 		jmp     oloop2
+  0x0164: 0x8000  152: oloop1:	lda     separator1         //  + 
+  0x0165: 0xB901  153: 		call	prints
+  0x0166: 0xB55A  154: 		jmp		oloop
+                155: 
+                156: //    print sum
+  0x0167: 0x8000  157: oloop2: lda	    separator2         // = 		
+  0x0168: 0xB901  158: 		call	prints
+  0x0169: 0xEA1B  159: 		and     a,d,d			   // print sum in d
+  0x016A: 0xB912  160: 		call    printn
+                161: 
+                162: oloop3: 
+  0x016B: 0x8000  163: 	    lda	    separator3         // newline 		
+  0x016C: 0xB901  164: 		call	prints
+  0x016D: 0x0001  165: 		hlt
+                166: 
+                167: overflow:  
+  0x016E: 0x8000  168: 		lda     separator2
+  0x016F: 0xB901  169: 		call    prints
+  0x0170: 0x8000  170: 		lda     overmsg
+  0x0171: 0xB901  171: 		call	prints
+  0x0172: 0xB56B  172: 		jmp		oloop3
+                173: 
+  0x0173: 0x0000  174: overmsg: overs
+  0x0174: 0x002A  175: overs:	'*'
+  0x0175: 0x002A  176: 	'*'
+  0x0176: 0x002A  177: 	'*'
+  0x0177: 0x0020  178: 	' '
+  0x0178: 0x004F  179: 	'O'
+  0x0179: 0x0076  180: 	'v'
+  0x017A: 0x0065  181: 	'e'
+  0x017B: 0x0072  182: 	'r'
+  0x017C: 0x0066  183: 	'f'
+  0x017D: 0x006C  184: 	'l'
+  0x017E: 0x006F  185: 	'o'
+  0x017F: 0x0077  186: 	'w'
+  0x0180: 0x0020  187: 	' '
+  0x0181: 0x002A  188: 	'*'
+  0x0182: 0x002A  189: 	'*'
+  0x0183: 0x002A  190: 	'*'
+  0x0184: 0x0000  191: 	0
+                192: 
+                193: 
+                194: ///////////////////////////////////		
+  0x0185: 0x0000  195: prompt:  prompts
+  0x0186: 0x0050  196: prompts: 'P'
+  0x0187: 0x006C  197: 	'l'
+  0x0188: 0x0065  198: 	'e'
+  0x0189: 0x0061  199: 	'a'
+  0x018A: 0x0073  200: 	's'
+  0x018B: 0x0065  201: 	'e'
+  0x018C: 0x0020  202: 	' '
+  0x018D: 0x0074  203: 	't'
+  0x018E: 0x0079  204: 	'y'
+  0x018F: 0x0070  205: 	'p'
+  0x0190: 0x0065  206: 	'e'
+  0x0191: 0x0020  207: 	' '
+  0x0192: 0x006E  208: 	'n'
+  0x0193: 0x0075  209: 	'u'
+  0x0194: 0x006D  210: 	'm'
+  0x0195: 0x0062  211: 	'b'
+  0x0196: 0x0065  212: 	'e'
+  0x0197: 0x0072  213: 	'r'
+  0x0198: 0x0073  214: 	's'
+  0x0199: 0x0020  215: 	' '
+  0x019A: 0x0074  216: 	't'
+  0x019B: 0x006F  217: 	'o'
+  0x019C: 0x0020  218: 	' '
+  0x019D: 0x0061  219: 	'a'
+  0x019E: 0x0064  220: 	'd'
+  0x019F: 0x0064  221: 	'd'
+  0x01A0: 0x003A  222: 	':'
+  0x01A1: 0x0020  223: 	' '
+  0x01A2: 0x0000  224: 	0
+                225: 
+  0x01A3: 0x0000  226: separator1: str1
+  0x01A4: 0x0020  227: str1:	' '
+  0x01A5: 0x002B  228: 	'+'
+  0x01A6: 0x0020  229: 	' '
+  0x01A7: 0x0000  230: 	0
+                231: 
+                232: 
+  0x01A8: 0x0000  233: separator2: str2
+  0x01A9: 0x0020  234: str2:	' '
+  0x01AA: 0x003D  235: 	'='
+  0x01AB: 0x0020  236: 	' '
+  0x01AC: 0x0000  237: 	0
+                238: 
+  0x01AD: 0x0000  239: separator3: str3
+  0x01AE: 0x000A  240: str3:	10
+  0x01AF: 0x0000  241: 	0
+                242: 
+                243: //   numbers continue as long as memory allows
+                244: addr_of_numbers:
+                245: 
+                246: 		end main

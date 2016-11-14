@@ -1,0 +1,142 @@
+                  1:         ORIG 0x40
+  0x0040: 0x0000    2: ZERO:	0
+  0x0041: 0x0040    3: TOZERO:	ZERO
+  0x0042: 0x0000    4: tofunct:		funct
+                  5: 		
+                  6:         ORIG 0x1000
+  0x1000: 0xFFFF    7: MSP:	0xFFFF
+  0x1001: 0xFF00    8: MSPL:	0XFF00
+                  9:         
+  0x1002: 0x0000   10: begin:  NOP
+                 11: 		// set up stack pointer and stack limit
+  0x1003: 0x8100   12: 		LDA   MSP    
+  0x1004: 0xEB80   13: 		AND   SP,A,A
+  0x1005: 0x8D01   14: 		LDD   MSPL
+  0x1006: 0xEDDB   15: 		OR    SPL,D,D
+                 16: 
+                 17: 		// now that stack is set up, call a function
+  0x1007: 0xBA42   18:         CALL  I tofunct
+                 19: 
+                 20: 		// different registers, execute instructions
+  0x1008: 0xF021   21:         CLA   INA
+  0x1009: 0xF422   22:         CLB   DCB
+  0x100A: 0xF828   23:         CLC   CMC
+  0x100B: 0xFC2A   24:         CLD   CMD DCD
+                 25: 
+                 26: 		// basic memory reference instructions
+                 27: 		// all the instructions
+                 28: 		// all the registers
+                 29: 		// addressing modes
+  0x100C: 0x1000   30:         ADDA  M7FFF
+  0x100D: 0x1000   31:         ADDA  M7FFF          // cause overflow
+  0x100E: 0x2400   32:         SUBB  MA52
+  0x100F: 0x8400   33:         LDB   MAA
+  0x1010: 0x3400   34:         MULB  D16
+  0x1011: 0x4400   35:         DIVB  D16
+  0x1012: 0x4641   36: 		DIVB I TOZERO
+  0x1013: 0x5C00   37:         ANDD  MA52
+  0x1014: 0x6000   38:         ORA   MA52
+  0x1015: 0x7800   39:         XORC  MA52
+                 40: 
+  0x1016: 0xF031   41: 		CLA CLL INA
+  0x1017: 0xF001   42: 		INA
+  0x1018: 0x3000   43: 		MULA  M7FFF         // cause overflow
+  0x1019: 0xF431   44: 		CLB CLL INB
+  0x101A: 0x8000   45: 		LDA  M8000
+  0x101B: 0xE648   46: 		MUL  B,B,A          // no overflow
+  0x101C: 0xF409   47: 		CMB INB
+                 48: 
+                 49: 
+                 50: 		// register to register
+  0x101D: 0xEE00   51:         XOR   A,A,A          // should clear A
+  0x101E: 0xEC09   52:         OR    A,B,B          // copies B to A
+  0x101F: 0xEABF   53: 		AND   C,SPL,SPL      // gets the stack limit register
+  0x1020: 0xECF6   54: 		OR    D,SP,SP        // gets the stack pointer
+  0x1021: 0xE45A   55: 		SUB   B,D,C          // compute the size of the stack
+  0x1022: 0xEC64   56: 		OR    B,PC,PC        // get PC
+  0x1023: 0xB800   57: 		CALL  getPC          // should put PC on stack
+  0x1024: 0xE481   58: RA:		SUB   C,A,B          // diff of two PC's
+  0x1025: 0x3800   59: 		MULC  D16
+  0x1026: 0xFC21   60: 		CLD, IND
+  0x1027: 0xFC01   61: 		IND
+  0x1028: 0xE053   62: 		MOD   B,C,D          // mod
+  0x1029: 0xE813   63: 		DIV   A,C,D
+  0x102A: 0x8000   64: 		LDA   MAA
+  0x102B: 0xFC22   65: 		CLD DCD
+  0x102C: 0xE843   66: 		DIV   B,A,D
+  0x102D: 0xE043   67: 		MOD   B,A,D          // what is mod for -1?
+  0x102E: 0xFC20   68: 		cld
+  0x102F: 0xE043   69: 		mod   B,A,D
+  0x1030: 0xE200   70: 		ADD   A,A,A
+  0x1031: 0xE600   71: 		MUL   A,A,A
+  0x1032: 0xE8DB   72: 		DIV   d,d,d
+                 73: 
+                 74: 		// push and pop
+  0x1033: 0xC000   75:         PUSH  MAA
+  0x1034: 0xC400   76:         POP   MAA
+                 77: 
+                 78: 		// isz and skip
+  0x1035: 0xF02A   79: 		cla cma dca
+  0x1036: 0x9000   80: 		sta who
+  0x1037: 0xB000   81: 		isz who
+  0x1038: 0xB000   82: 		isz who
+                 83: who:	
+                 84: 
+                 85: 		// operate instructions
+  0x1039: 0xF022   86:         CLA,DCA
+  0x103A: 0xF300   87:         SZA,SMA
+  0x103B: 0x0001   88:         HLT        // should be skipped
+  0x103C: 0xF340   89:         SZA SMA RSS
+  0x103D: 0x0000   90:         NOP        // should be executed
+                 91: 
+  0x103E: 0xF0D4   92: 		CLL CML SNL RSS
+  0x103F: 0x0000   93: 		NOP
+  0x1040: 0xF0C0   94: 		SNL RSS
+  0x1041: 0x0000   95: 		NOP
+                 96: 
+                 97: 		// I/O -- output instructions
+  0x1042: 0x8000   98: 		LDA  ToAstring
+  0x1043: 0xB800   99: 		CALL prints
+                100: 
+  0x1044: 0x0001  101:         HLT
+                102: 
+                103: 				// simple function, just return
+  0x1045: 0x0002  104: funct:  RET
+                105: 
+  0x1046: 0x0000  106: savePC:	0
+  0x1047: 0xC546  107: GetPC:	POP  savePC  // get Return Address off stack
+  0x1048: 0x8146  108: 		LDA  savePC
+  0x1049: 0xED00  109: 		OR   PC,A,A  // move Return Address to PC
+  0x104A: 0x0001  110: 		HLT          // should never get here
+                111: 
+                112: //
+                113: // print a string.  Address of string is in A register
+                114: //
+  0x104B: 0x0000  115: ps0:      0
+  0x104C: 0x914B  116: prints:   sta  ps0		// store pointer, for indirect addressing
+  0x104D: 0x834B  117: ps1:	  lda  i ps0
+  0x104E: 0xF140  118: 		  sza rss
+  0x104F: 0x0002  119: 		  ret           // return on zero (end of string)
+  0x1050: 0xA020  120: 		  iota 4,0      // print character
+  0x1051: 0xB14B  121: 		  isz  ps0
+  0x1052: 0xB54D  122: 		  jmp ps1
+                123: 
+                124: 
+                125: // 
+                126: //  constants
+  0x1053: 0x0010  127: D16:    16
+  0x1054: 0x00AA  128: MAA:    0xAA
+  0x1055: 0x0A52  129: MA52:   0xa52
+  0x1056: 0x7FFF  130: M7FFF:  0x7FFF
+  0x1057: 0x8000  131: M8000:  0x8000
+                132: 
+  0x1058: 0x0000  133: ToAstring:		Astring
+  0x1059: 0x0044  134: Astring:		'D'
+  0x105A: 0x006F  135: 		'o'
+  0x105B: 0x006E  136: 		'n'
+  0x105C: 0x0065  137: 		'e'
+  0x105D: 0x000A  138: 		10
+  0x105E: 0x0000  139: 		0
+                140: 		
+                141:         END begin
+                142:         

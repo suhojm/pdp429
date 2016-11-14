@@ -1,0 +1,82 @@
+                  1: //
+                  2: //  A program to print all the prime numbers
+                  3: //
+  0x0000: 0x0028    4: stsize:	  40
+  0x0001: 0x0001    5: n:		  1		// the number we are working on
+  0x0002: 0x000A    6: ascii_nl: 10
+  0x0003: 0x07D0    7: limit:    2000
+                  8: 
+  0x0004: 0xF022    9: start:	cla dca     // a = 0xFFFF
+  0x0005: 0xEB80   10: 		and sp,a,a  // move a to sp
+  0x0006: 0x2000   11: 		suba stsize
+  0x0007: 0xEBC0   12: 		and spl,a,a // move a minus stack size to spl
+                 13: 		
+  0x0008: 0xFC21   14: 		cld ind     // keep number we are working on in D; start D=1
+                 15: 
+  0x0009: 0xEA1B   16: label1:	and a,d,d   // move d to a
+  0x000A: 0xB800   17: 		call prime  // check if d is prime
+  0x000B: 0xB400   18: 		jmp  label2 // d is not prime
+  0x000C: 0xEA1B   19: 		and a,d,d   // move d to a
+  0x000D: 0xB800   20: 		call print  // print number
+  0x000E: 0x8002   21: 		lda ascii_nl
+  0x000F: 0xA020   22: 		iota 4      // print newlne
+                 23: 
+  0x0010: 0xFC01   24: label2:	ind         // get next number
+  0x0011: 0x8003   25: 		lda limit   // compare D and limit
+  0x0012: 0xE403   26: 		sub a,a,d
+  0x0013: 0xF200   27: 		sma         // if limit < n, halt
+  0x0014: 0xB409   28: 		jmp label1
+  0x0015: 0x0001   29: 		hlt
+                 30: 
+                 31: 
+                 32: 		// print contents of A as a decimal number
+  0x0016: 0x0000   33: parray:	0
+  0x0017: 0x0000   34: 		0
+  0x0018: 0x0000   35: 		0
+  0x0019: 0x0000   36: 		0
+  0x001A: 0x0000   37: 		0
+  0x001B: 0x0000   38: 		0
+  0x001C: 0x0016   39: pradd:	parray
+  0x001D: 0x0016   40: prptr:	parray
+  0x001E: 0x000A   41: m10:	10
+  0x001F: 0x0030   42: czero:	'0'
+                 43: 		
+  0x0020: 0x841C   44: print:	ldb  pradd
+  0x0021: 0x941D   45: 		stb  prptr    // set up pointer
+  0x0022: 0x841E   46: 		ldb  m10      // base 10 printing
+  0x0023: 0xE081   47: pr2:	mod  c,a,b    // get low-order digit (c = a mod 10)
+  0x0024: 0x181F   48: 		addc czero    // convert to character code
+  0x0025: 0x9A1D   49: 		stc  i prptr  // save digit
+  0x0026: 0xB01D   50: 		isz  prptr    // increment pointer
+  0x0027: 0xE801   51: 		div  a,a,b    // divide a/10 -> a
+  0x0028: 0xF100   52: 		sza 
+  0x0029: 0xB423   53: 		jmp pr2       // non-zero means print char array
+                 54: 
+  0x002A: 0x801D   55: pr3:	lda prptr
+  0x002B: 0xF002   56: 		dca
+  0x002C: 0x901D   57: 		sta prptr
+  0x002D: 0x8A1D   58: 		ldc i prptr    // load the digit
+  0x002E: 0xA820   59: 		iotc 4,0       // print the digit
+  0x002F: 0x201C   60: 		suba pradd
+  0x0030: 0xF300   61: 		sma sza
+  0x0031: 0xB42A   62: 		jmp pr3
+  0x0032: 0x0002   63: 		ret
+                 64: 
+                 65: 
+                 66: // determine if the number in a is prime.
+                 67: // divide by every number from 2 to a-1
+  0x0033: 0x0000   68: pra:	0
+  0x0034: 0xC433   69: prime:	pop pra      // get return address
+  0x0035: 0xF421   70: 		clb inb      // start at 1
+  0x0036: 0xF401   71: p1:		inb          // try next value
+  0x0037: 0xE081   72: 		mod  c,a,b   // divide a by b, look at remainder
+  0x0038: 0xF940   73: 		szc rss
+  0x0039: 0xB633   74: 		jmp i pra    // mod is zero; divisible by b; not prime
+  0x003A: 0xE881   75: 		div  c,a,b   // check if a/b < b
+  0x003B: 0xE491   76: 		sub  c,c,b
+  0x003C: 0xFB00   77: 		smc szc 
+  0x003D: 0xB436   78: 		jmp p1
+  0x003E: 0xB033   79: 		isz pra      // a is prime
+  0x003F: 0xB633   80: 		jmp i pra
+                 81: 		end start
+                 82: 		
